@@ -18,6 +18,7 @@ from .shortlink import ShortLinkPlugin
 from .web_server_route import WebServerPlugin
 from .reverse_proxy import ReverseProxyPlugin
 from .proxy_pool import ProxyPoolPlugin
+from .ldap_authentication import LdapAuthenticationPlugin
 
 __all__ = [
     'CacheResponsesPlugin',
@@ -31,4 +32,5 @@ __all__ = [
     'WebServerPlugin',
     'ReverseProxyPlugin',
     'ProxyPoolPlugin',
+    'LdapAuthenticationPlugin'
 ]
