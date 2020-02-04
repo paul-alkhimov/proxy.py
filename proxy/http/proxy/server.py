@@ -57,14 +57,15 @@ class HttpProxyPlugin(HttpProtocolHandlerPlugin):
         self.pipeline_request: Optional[HttpParser] = None
         self.pipeline_response: Optional[HttpParser] = None
 
-        self.plugins: Dict[str, HttpProxyBasePlugin] = {}
+        self.plugins: Dict[bytes, List] = {}
         if b'HttpProxyBasePlugin' in self.flags.plugins:
             for klass in self.flags.plugins[b'HttpProxyBasePlugin']:
-                instance = klass(
+                instance = klass[0](
                     self.uid,
                     self.flags,
                     self.client,
-                    self.event_queue)
+                    self.event_queue,
+                    optional=klass[1])
                 self.plugins[instance.name()] = instance
 
     def get_descriptors(

@@ -135,7 +135,7 @@ class HttpProtocolHandler(ThreadlessWork):
             self.client = TcpClientConnection(conn=conn, addr=self.client.addr)
         if b'HttpProtocolHandlerPlugin' in self.flags.plugins:
             for klass in self.flags.plugins[b'HttpProtocolHandlerPlugin']:
-                instance = klass(
+                instance = klass[0](
                     self.uid,
                     self.flags,
                     self.client,

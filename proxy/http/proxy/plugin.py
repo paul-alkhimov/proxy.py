@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from ..parser import HttpParser
 
@@ -29,7 +29,8 @@ class HttpProxyBasePlugin(ABC):
             uid: UUID,
             flags: Flags,
             client: TcpClientConnection,
-            event_queue: EventQueue) -> None:
+            event_queue: EventQueue,
+            optional: List[str]) -> None:
         self.uid = uid                  # pragma: no cover
         self.flags = flags              # pragma: no cover
         self.client = client            # pragma: no cover

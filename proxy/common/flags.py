@@ -33,7 +33,7 @@ from .constants import DEFAULT_CA_CERT_DIR, DEFAULT_CA_CERT_FILE, DEFAULT_CA_KEY
 from .constants import DEFAULT_PAC_FILE_URL_PATH, DEFAULT_PAC_FILE, DEFAULT_PLUGINS, DEFAULT_PID_FILE, DEFAULT_PORT
 from .constants import DEFAULT_NUM_WORKERS, DEFAULT_VERSION, DEFAULT_OPEN_FILE_LIMIT, DEFAULT_IPV6_HOSTNAME
 from .constants import DEFAULT_SERVER_RECVBUF_SIZE, DEFAULT_CLIENT_RECVBUF_SIZE, DEFAULT_STATIC_SERVER_DIR
-from .constants import DEFAULT_ENABLE_DASHBOARD, COMMA, DOT
+from .constants import DEFAULT_ENABLE_DASHBOARD, COMMA, DOT, COLON
 from .version import __version__
 
 __homepage__ = 'https://github.com/abhinavsingh/proxy.py'
@@ -490,20 +490,31 @@ class Flags:
                     'Open file soft limit set to %d', soft_limit)
 
     @staticmethod
-    def load_plugins(plugins: bytes) -> Dict[bytes, List[type]]:
+    def load_plugins(plugins: bytes) -> Dict[bytes, List]:
         """Accepts a comma separated list of Python modules and returns
         a list of respective Python classes."""
-        p: Dict[bytes, List[type]] = {
+        p: Dict[bytes, List] = {
             b'HttpProtocolHandlerPlugin': [],
             b'HttpProxyBasePlugin': [],
             b'HttpWebServerBasePlugin': [],
-            b'ProxyDashboardWebsocketPlugin': []
+            b'ProxyDashboardWebsocketPlugin': [],
         }
         for plugin_ in plugins.split(COMMA):
             plugin = text_(plugin_.strip())
             if plugin == '':
                 continue
-            module_name, klass_name = plugin.rsplit(text_(DOT), 1)
+
+            # 'proxy.plugin.ExamplePlugin:~/path/filename.txt:second_param:third_param' -->
+            # ['proxy.plugin.ExamplePlugin', '~/path/filename.txt:second_param:third_param']
+            plugin_with_args = plugin.split(text_(COLON), 1)
+
+            args = []
+            if len(plugin_with_args) > 1:
+                # ['~/path/filename.txt', 'second_param', 'third_param']
+                args = plugin_with_args[1].split(text_(COLON))
+
+            # ['proxy.plugin', 'ExamplePlugin']
+            module_name, klass_name = plugin_with_args[0].rsplit(text_(DOT), 1)
             klass = getattr(
                 importlib.import_module(
                     module_name.replace(
@@ -515,7 +526,7 @@ class Flags:
             while next(iterator) is not abc.ABC:
                 pass
             base_klass = next(iterator)
-            p[bytes_(base_klass.__name__)].append(klass)
+            p[bytes_(base_klass.__name__)].append([klass, args])
             logger.info(
                 'Loaded %s %s.%s',
                 'plugin' if klass.__name__ != 'HttpWebServerRouteHandler' else 'route',
